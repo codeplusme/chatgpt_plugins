@@ -1,0 +1,1 @@
+from chatgpt_plugins.app import chat, routes,templates,static

@@ -3,10 +3,10 @@ import requests
 import json
 from typing import List, Dict
 import uuid
-from .plugins.plugin import PluginInterface
-from .plugins.websearch import WebSearchPlugin
-from .plugins.webscraper import WebScraperPlugin
-from .plugins.pythoninterpreter import PythonInterpreterPlugin
+from plugins.plugin import PluginInterface
+from plugins.websearch import WebSearchPlugin
+from plugins.webscraper import WebScraperPlugin
+from plugins.pythoninterpreter import PythonInterpreterPlugin
 
 GPT_MODEL = "gpt-3.5-turbo-16k-0613"
 SYSTEM_PROMPT = """
@@ -27,8 +27,7 @@ class Conversation:
 
     def add_message(self, role, content):
         message = {"role": role, "content": content}
-        self.conversation_history.append(message)
-    
+
 
 class ChatSession:
     """
@@ -52,7 +51,7 @@ class ChatSession:
         """
         Register a plugin for use in this session
         """
-        self.plugins[plugin.get_name()] = plugin
+        self.plugins[plugin.name ] = plugin
     
     def get_messages(self) -> List[Dict]:
         """
@@ -67,9 +66,17 @@ class ChatSession:
         Generate the list of functions that can be passed to the chatgpt
         API call.
         """
-        return [self._plugin_to_function(p) for
-                p in self.plugins.values()]
+        functions = [self._plugin_to_function(p) for
+         p in self.plugins.values()]
+        return
 
+
+    def register_plugin(self, plugin: PluginInterface):
+        """
+        Register a plugin for use in this session
+        """
+        self.plugins[plugin.name ] = plugin
+        
     def _plugin_to_function(self, plugin: PluginInterface) -> Dict:
         """
         Convert a plugin to the function call specification as
@@ -77,9 +84,9 @@ class ChatSession:
         https://platform.openai.com/docs/api-reference/chat/create#chat/create-functions
         """
         function = {}
-        function["name"] = plugin.get_name()
-        function["description"] = plugin.get_description()
-        function["parameters"] = plugin.get_parameters()
+        function["name"] = plugin.name 
+        function["description"] = plugin.description
+        function["parameters"] = plugin.parameters 
         return function
     
     def _execute_plugin(self, func_call) -> str:
@@ -100,7 +107,7 @@ class ChatSession:
         # need to append the plugin response into the conversation
         # history. However, this is just temporary so we make a
         # copy of the messages and then append to that copy.
-        print(f"Response from plugin {func_name}: {plugin_response}")
+        print(f"Response from plugin {func_name}: {plugin_response}[:100]")
         messages = list(self.conversation.conversation_history)
         messages.append({"role": "function",
                          "content": json.dumps(plugin_response),
